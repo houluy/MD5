@@ -25,6 +25,19 @@ i. Modify the message that is needed to be hash in ``main`` function in ``main.p
 RATIONAL
 ---------------------
 
+i. Encode the message into ``bytes`` object, named as ``obj``.
+#. Record the bit length of ``obj``.
+    ::
+
+        bitlen = len(obj) * 8  # 8 bits per byte
+
+#. Padding the message as follows:  
+    a. Padding a ``1`` at the end of the ``obj``.
+    ::
+        
+        obj = (obj << 1) + 1
+    b. Padding n ``0`` at the end of the ``obj``.
+
 
 ---------------------
 REFERENCE
