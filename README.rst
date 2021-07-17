@@ -25,25 +25,28 @@ RATIONAL
 ---------------------
 
 i. Encode the message into ``bytes`` object, named as ``obj``.
-ii. Record the bit length of ``obj``.
-.. code-block::python
 
-    bitlen = len(obj) * 8  # 8 bits per byte
+ii. Record the bit length of ``obj``.
+
+    .. code-block::python
+
+        bitlen = len(obj) * 8  # 8 bits per byte
 
 iii. Padding the message as follows:  
+
     a. Padding a ``1`` at the end of the ``obj``.
-    .. code-block::python
+        .. code-block::python
 
-        obj = (obj << 1) + 1
+            obj = (obj << 1) + 1
     b. Padding n ``0`` at the end of the ``obj``. 
-    .. code-block::python
+        .. code-block::python
 
-        obj = (obj << (448 - bitlen - 1) % 512
+            obj = (obj << (448 - bitlen - 1) % 512
     c. Add the bit length (little-endian) of original message
-    .. code-block::python
+        .. code-block::python
 
-        bitlen = reverse_int(bitlen, bytenum=8) 
-        padded_s = (padded << 64) + bitlen
+            bitlen = reverse_int(bitlen, bytenum=8) 
+            padded_s = (padded << 64) + bitlen
 
 iv. Split message into groups, each of which consists of 16 words of 32-bits long (Each word is little-endian).
     .. code-block::python
