@@ -59,5 +59,5 @@ vi. Append the output 4 words ``AA, BB, CC, DD``.
 REFERENCE
 ---------------------
 
-`https://cs.indstate.edu/~fsagar/doc/paper.pdf<https://cs.indstate.edu/~fsagar/doc/paper.pdf>`_
+https://cs.indstate.edu/~fsagar/doc/paper.pdf
 
