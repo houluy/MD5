@@ -84,7 +84,7 @@ def md5_group(s, total_bitlen):
         word_ind = 0
         while g:
             word = g & word_fetch_int
-            group_list[ind][WORDNUM - word_ind - 1] = struct.unpack(">I", struct.pack("<I", word))[0]
+            group_list[ind][WORDNUM - word_ind - 1] = reverse_int(word, bytenum=4)
             g >>= WORDLEN
             word_ind += 1
         s >>= GROUPLEN
@@ -134,7 +134,7 @@ def md5(group_list):
 
 def main():
     # msg = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    msg = "abc"
+    msg = "hello world"
     msg_enc = msg.encode()
     prepared_msg, total_bitlen = md5_prepare(msg_enc)
     groups, group_num = md5_group(prepared_msg, total_bitlen)
