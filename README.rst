@@ -34,28 +34,55 @@ ii. Record the bit length of ``obj``.
 
 iii. Padding the message as follows:  
 
-    a. Padding a ``1`` at the end of the ``obj``.
+    a. Calculate the total padding length that needed.
         .. code-block::python
 
-            obj = (obj << 1) + 1
-    b. Padding n ``0`` at the end of the ``obj``. 
+            padding_len = (448 - bitlen) % 512
+            if padding_len == 0:
+                padding_len = 512  
+                # If the original length (bitlen) equals to 448, then we need to 
+                #   pad 512 bits
+            total_bitlen = bitlen + padding_len
+
+    b. Padding a ``1`` at the end of the ``obj``.
         .. code-block::python
 
-            obj = (obj << (448 - bitlen - 1) % 512
-    c. Add the bit length (little-endian) of original message
+            padded_s = (padded_s << 1) ^ 1
+             
+    c. Padding n ``0`` at the end of the ``obj``. 
+        .. code-block::python
+
+            padded_s = (padded_s << (padding_len - 1)
+    d. Add the bit length (little-endian) of original message
         .. code-block::python
 
             bitlen = reverse_int(bitlen, bytenum=8) 
-            padded_s = (padded << 64) + bitlen
+            padded_s = (padded_s << 64) + bitlen
 
 iv. Split message into groups, each of which consists of 16 words of 32-bits long (Each word is little-endian).
     .. code-block::python
 
-        group_list[group_ind][word_ind] = reverse_int(group & 0xFFFFFFFF, bytenum=4)
-        group >>= 32
+        # Initialize
+        group_num, rem = divmod(total_bitlen, 512)
+        if rem == 0:
+            group_num -= 1
+        group_list = [[0 for _ in range(16)] for __ in range(group_num)]
+        group_ind = 0
+        while padded_s:
+            group = padded_s & 0xFFFF...FF   # 64 bytes
+            word_ind = 0
+            while group:
+                group_list[group_ind][16 - word_ind - 1] = reverse_int(group & 0xFFFFFFFF, bytenum=4)
+                group >>= 32
+                word_ind += 1
+            group_ind += 1
+            padded_s >>= 512
 
-v. Calculate MD5. 4 rounds, each of which has 16 operations.
-vi. Append the output 4 words ``AA, BB, CC, DD``.
+v. Calculate MD5. 4 rounds, each of which has 16 operations, ref to ``md5`` function.
+vi. Concatenate the output 4 words ``AA, BB, CC, DD``, need to add suffix ``0`` until each string is of 16 letters (8 bytes).
+    .. code-block::python
+
+        f"{AA:=08x}{BB:=08x}{CC:=08x}{DD:=08x}"
 
 
 ---------------------

@@ -1,6 +1,6 @@
 # Little Endian
 
-from collections.abc import ByteString
+from collections.abc import ByteString 
 import hashlib
 
 from table import K, shiftamount
@@ -11,10 +11,6 @@ from tool import *
 
 
 #Constants
-A = 0x67452301
-B = 0xEFCDAB89
-C = 0x98BADCFE
-D = 0x10325476
 
 BITPERBYTE = 8
 GROUPLEN = 512  # bits
@@ -51,21 +47,19 @@ def md5_prepare(s):
     total_bitlen = bit_len = len(s) * BITPERBYTE
     remainder = bit_len % GROUPLEN
     s = int.from_bytes(s, "big")
-    if remainder != GROUPREMAIN:
-        # Need to padding bits
-        # first bit is 1
-        # then padding bit 0 until if passes
-        if remainder > GROUPREMAIN:
-            padding_len = (GROUPLEN - remainder) + GROUPREMAIN
-        else:
-            padding_len = GROUPREMAIN - remainder
-        padded_s = md5_padding(s, padding_len)
-    else:
-        padded_s = s
+    # if remainder != GROUPREMAIN:
+    # Need to padding bits
+    # first bit is 1
+    # then padding bit 0 until total bit number is 448, modulo 512
+    # 
+    padding_len = (GROUPREMAIN - remainder) % GROUPLEN
+    if padding_len == 0:
+        padding_len = GROUPLEN
+    padded_s = md5_padding(s, padding_len)
     bit_len %= 2**64  # 64-bits length
     bit_len = reverse_int(bit_len, bytenum=8)
     padded_s = (padded_s << PADDINGLEN) + bit_len
-    total_bitlen += padding_len
+    total_bitlen += (padding_len + 64)
     return padded_s, total_bitlen
 
 
@@ -73,18 +67,19 @@ def md5_group(s, total_bitlen):
     """
     Split message s (after padded) into several 512-bits group, then split each group into 16 words of 32-bits
     """
-    group_num = total_bitlen // GROUPLEN
-    group_list = []
+    group_num, rem = divmod(total_bitlen, GROUPLEN)
+    if rem == 0:
+        group_num -= 1
+    group_list = [[0 for _ in range(WORDNUM)] for __ in range(group_num + 1)]
     group_fetch_int = bit_fetch(GROUPLEN)
     word_fetch_int = bit_fetch(WORDLEN)
     ind = 0
     while s:
         g = s & group_fetch_int
-        group_list.append([0 for _ in range(WORDNUM)])
         word_ind = 0
         while g:
             word = g & word_fetch_int
-            group_list[ind][WORDNUM - word_ind - 1] = reverse_int(word, bytenum=4)
+            group_list[group_num - ind][WORDNUM - word_ind - 1] = reverse_int(word, bytenum=4)
             g >>= WORDLEN
             word_ind += 1
         s >>= GROUPLEN
@@ -96,12 +91,16 @@ def md5(group_list):
     """
     Calculate the MD5 of group
     """
-    global A, B, C, D
-    AA = A
-    BB = B
-    CC = C
-    DD = D
+    AA = A = 0x67452301
+    BB = B = 0xEFCDAB89
+    CC = C = 0x98BADCFE
+    DD = D = 0x10325476
+
     for group in group_list:
+        A = AA
+        B = BB
+        C = CC
+        D = DD
         for ind in range(OPERATIONNUM):
             if ind <= 15:
                 F = aux_f(B, C, D)
@@ -129,12 +128,13 @@ def md5(group_list):
     for ind, word in enumerate(output_list):
         output_list[ind] = reverse_int(word)
     AA, BB, CC, DD = output_list
-    return f"{AA:x}{BB:x}{CC:x}{DD:x}"
-    
+    return f"{AA:=08x}{BB:=08x}{CC:=08x}{DD:=08x}"  # Append zero before each byte to 8 characters
+ 
 
 def main():
-    # msg = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    msg = "hello world"
+    msg = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    # msg = "hello world"
+    # msg = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     msg_enc = msg.encode()
     prepared_msg, total_bitlen = md5_prepare(msg_enc)
     groups, group_num = md5_group(prepared_msg, total_bitlen)
