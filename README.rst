@@ -6,12 +6,12 @@ Implementation of MD5 algorithm
 HOWTO
 ---------------------
 
-i. Modify the message that is needed to be hash in ``main`` function in ``main.py``
-.. code-block::python
+i. Modify the message that is needed to be hash in ``main`` function in ``main.py``. 
+    .. code-block::python
 
-    msg = "hello world"
+        msg = "hello world"
 
-#. Run ``main.py`` and get the results
+ii. Run ``main.py`` and get the results
 
 ::
 
@@ -33,33 +33,32 @@ ii. Record the bit length of ``obj``.
         bitlen = len(obj) * 8  # 8 bits per byte
 
 iii. Padding the message as follows:  
+a. Calculate the total padding length that needed.
+    .. code-block::python
 
-    a. Calculate the total padding length that needed.
-        .. code-block::python
+        padding_len = (448 - bitlen) % 512
+        if padding_len == 0:
+            padding_len = 512  
+            # If the original length (bitlen) equals to 448, then we need to 
+            #   pad 512 bits
+        total_bitlen = bitlen + padding_len
 
-            padding_len = (448 - bitlen) % 512
-            if padding_len == 0:
-                padding_len = 512  
-                # If the original length (bitlen) equals to 448, then we need to 
-                #   pad 512 bits
-            total_bitlen = bitlen + padding_len
+b. Padding a ``1`` at the end of the ``obj``.
+    .. code-block::python
 
-    b. Padding a ``1`` at the end of the ``obj``.
-        .. code-block::python
+        padded_s = (padded_s << 1) ^ 1
+         
+c. Padding n ``0`` at the end of the ``obj``. 
+    .. code-block::python
 
-            padded_s = (padded_s << 1) ^ 1
-             
-    c. Padding n ``0`` at the end of the ``obj``. 
-        .. code-block::python
+        padded_s = (padded_s << (padding_len - 1)
+d. Add the bit length (little-endian) of original message.  
+    .. code-block::python
 
-            padded_s = (padded_s << (padding_len - 1)
-    d. Add the bit length (little-endian) of original message
-        .. code-block::python
+        bitlen = reverse_int(bitlen, bytenum=8) 
+        padded_s = (padded_s << 64) + bitlen
 
-            bitlen = reverse_int(bitlen, bytenum=8) 
-            padded_s = (padded_s << 64) + bitlen
-
-iv. Split message into groups, each of which consists of 16 words of 32-bits long (Each word is little-endian).
+iv. Split message into groups, each of which consists of 16 words of 32-bits long (Each word is little-endian).  
     .. code-block::python
 
         # Initialize
@@ -78,8 +77,8 @@ iv. Split message into groups, each of which consists of 16 words of 32-bits lon
             group_ind += 1
             padded_s >>= 512
 
-v. Calculate MD5. 4 rounds, each of which has 16 operations, ref to ``md5`` function.
-vi. Concatenate the output 4 words ``AA, BB, CC, DD``, need to add suffix ``0`` until each string is of 16 letters (8 bytes).
+v. Calculate MD5. 4 rounds, each of which has 16 operations, ref to ``md5`` function. 
+vi. Concatenate the output 4 words ``AA, BB, CC, DD``, need to add suffix ``0`` until each string is of 16 letters (8 bytes). 
     .. code-block::python
 
         f"{AA:=08x}{BB:=08x}{CC:=08x}{DD:=08x}"
