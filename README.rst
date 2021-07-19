@@ -33,6 +33,7 @@ ii. Record the bit length of ``obj``.
     bitlen = len(obj) * 8  # 8 bits per byte
 
 iii. Padding the message as follows.
+
     a. Calculate the total padding length that needed.
     ::
 
@@ -51,7 +52,7 @@ iii. Padding the message as follows.
     c. Padding n ``0`` at the end of the ``obj``. 
     ::
 
-            padded_s = (padded_s << (padding_len - 1)
+            padded_s = (padded_s << (padding_len - 1))
     d. Add the bit length (little-endian) of original message.  
     ::
 
